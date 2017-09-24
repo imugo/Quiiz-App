@@ -1,0 +1,266 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1" />
+<title>Untitled Document</title>
+<link rel="stylesheet" href="styles/bootstrap-3.3.7-dist/css/bootstrap.min.css" />
+<style>
+.slide {
+	position: absolute;
+	left: 0px;
+	top: 0px;
+	width: 100%;
+	z-index: 1;
+	opacity: 0;
+	transition: opacity 0.5s;
+}
+.active-slide {
+	opacity: 1;
+	z-index: 2;
+}
+.quiz-container {
+	position: relative;
+	height: 200px;
+	margin-top: 40px;
+}
+
+</style>
+</head>
+
+<body>
+<br /><br />
+<div class="container">
+<div class="row">
+<div class="col-sm-3 col-offset-sm-3">
+<div class="progress">
+	<div class="progress-bar" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="3"></div>
+</div>	
+
+<div class="quiz-container">
+	<div id="quiz"></div>
+</div>
+<button id="previous">Previous Question</button>
+<button id="next">Next Question</button>
+<button id="submit">Submit Quiz</button>
+<div id="results"></div>
+</div>
+</div>
+</div>
+
+<div class="crossword-board-container">
+	<div class="crossword-board">
+    	<!--Input elements go here using css grid as its layout -->
+        <div class="crossword-board crossword-board--highlight crossword-board--highlight--across">
+        <!-- Highlights for valid across answers go here. Use CSS grid as its layout -->
+        </div>
+        
+        <div class="crossword-board crossword-board--highlight crossword-board--highlight--down">
+        <!-- Highlights for valid down answers go here. Use CSS grid as its layout -->
+        </div>
+        
+        <div class="crossword-board crossword-board--labels">
+        <!-- Row annd column number go here. Use css grid as its layout -->
+        </div>
+        
+        <div class="crossword-clues">
+        	
+            <dl class="crossword-clues__list crossword-clues__list--across">
+            <!-- clues for all the accross words go here -->
+            </dl>
+            
+            <dl class="crossword-clues__list crossword-clues__list--down">
+            <!-- clues for all the down words go here -->
+            </dl>
+        </div>
+    </div>
+</div>
+
+<script src="styles/jQuery/jquery-3.1.1.min.js"></script>
+<script src="styles/bootstrap-3.3.7-dist/js/bootstrap.min.js"></script>
+<script>
+(function() {
+const quizContainer = document.getElementById("quiz");
+const resultsContainer = document.getElementById("results");
+const submitButton = document.getElementById("submit");
+
+const myQuestions = [
+	{ 
+		question: "who is the strongest?", 
+		answers: {
+			a: "Superman",
+			b: "The Terminator",
+			c: "Waluigi, obviously"
+		},
+		correctAnswer: "c"
+	},
+	{
+		question: "what is the best site ever created?", 
+		answers: {
+			a: "Sitepoint",
+			b: "w3schools",
+			c: "Trick quesstion, they're both the best"
+		},
+		correctAnswer: "c"
+	},
+	{
+		question: "where is Waldo really?", 
+		answers: {
+			a: "Antartica",
+			b: "Exploring the pacific ocean",
+			c: "Sitting in a tree",
+			d: "Minding his own business, so stop asking"
+		},
+		correctAnswer: "d"
+	}
+];
+
+function buildQuiz() {
+	// we'll need a place to store the HTML output
+	const output = []; // Constants have block scope
+	
+	// for each question...
+	myQuestions.forEach(
+		(currentQuestion, questionNumber) => {
+			// we'll want to store the list of answer choices
+			const answers = [];
+			
+			// and for each available answer...
+			for (letter in currentQuestion.answers) {
+				// ...add an HTML radio button
+				answers.push(
+					`<label>
+						<input type="radio" name="question${questionNumber}" value="${letter}">
+						${letter} : ${currentQuestion.answers[letter]}
+					</label><br>`
+				);
+			}
+			
+			// add this question and its answers to the output
+			output.push(
+				`<div class="slide">
+				    <div class="question">${currentQuestion.question}</div>
+				    <div class="answers">${answers.join('')}</div>
+				 </div>`
+			);
+		}
+	);
+	
+	// finally combine our output list into one string of HTML and put it on the page
+	quizContainer.innerHTML = output.join('');
+}
+
+
+
+function showResults() {
+	// Gather answer containers from our quiz
+	const answerContainers = quizContainer.querySelectorAll('.answers');
+	
+	// Keep track of user's answer
+	let numCorrect = 0;
+	
+	// for each question...
+	myQuestions.forEach((currentQuestion, questionNumber) => {
+		// find selected answer
+		const answerContainer = answerContainers[questionNumber];
+		const selector = `input[name=question${questionNumber}]:checked`;
+		const userAnswer = (answerContainer.querySelector(selector) || {}).value;
+		
+		// If answer is correct
+		if (userAnswer === currentQuestion.correctAnswer) {
+			// add to the number of correct answers
+			numCorrect++;
+			
+			// color the answers green
+			answerContainers[questionNumber].style.color = 'lightgreen';
+		}
+		// If answer is wrong or blank
+		else{
+			// color the answers red
+			answerContainers[questionNumber].style.color = 'red';
+		}
+	});
+	
+	// show number of correct answers out of total
+	resultsContainer.innerHTML = numCorrect + ' out of ' + myQuestions.length;
+}
+
+
+
+function showSlide(n) {
+	slides[currentSlide].classList.remove('active-slide');
+	slides[n].classList.add('active-slide');
+	currentSlide = n;
+	
+	if (currentSlide === 0) {
+		previousButton.style.display = 'none';
+	}
+	else {
+		previousButton.style.display = 'inline-block';
+	}
+	if (currentSlide === slides.length-1) {
+		nextButton.style.display = 'none';
+		submitButton.style.display = 'inline-block';
+	}
+	else {
+		nextButton.style.display = 'inline-block';
+		submitButton.style.display = 'none';
+	}
+}
+
+
+function showNextSlide() {
+	showSlide(currentSlide + 1);
+}
+function showPreviousSlide() {
+	showSlide(currentSlide - 1);
+}
+
+function increaseProgressBar() {
+	progressBar[0].style.width = (width.c += 50) + "%";
+}
+
+function decreaseProgressBar() {
+	progressBar[0].style.width = (width.c -= 50) + "%";
+}
+
+// display quiz right away
+buildQuiz();
+
+// Pagination
+const previousButton = document.getElementById("previous");
+const nextButton = document.getElementById("next");
+const slides = document.querySelectorAll(".slide");
+let currentSlide = 0;
+
+// Progress bar
+let progressBar = document.querySelectorAll(".progress-bar");
+let width = {c:0};
+
+showSlide(0);
+
+previousButton.addEventListener('click', showPreviousSlide);
+previousButton.addEventListener('click', decreaseProgressBar);
+nextButton.addEventListener('click', showNextSlide);
+nextButton.addEventListener('click', increaseProgressBar);
+// on submit, show results
+submitButton.addEventListener('click', showResults);
+
+
+})();
+
+console.log(`string line 1
+string line 2`);
+
+var a = 20;
+var b = 30;
+var add = function(a,b) {
+	return a+b;
+}
+console.log(`This is amazing!
+a + b is ${add(a,b)}.`);
+
+var height = [0,50,100];
+console.log(height.forEach((x,y)=>x));
+</script>
+</body>
+</html>
